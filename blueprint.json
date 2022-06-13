@@ -1,0 +1,1172 @@
+{
+    "name": "Integration Microsoft 365 Email, Archive, Google Drive",
+    "flow": [
+        {
+            "id": 65,
+            "module": "microsoft-email:listMessages",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 329967
+            },
+            "mapper": {
+                "limit": "1",
+                "folder": "/AAMkAGRkZjljMmNmLWYyNzctNDI5Yi1hMjk4LTgyMTVkYzYxZTFlNgAuAAAAAAByrex35sSRSa7LMQgOw90_AQCCkyJhzgS-RK3iPAKoyRZXAAAAAAEMAAA=",
+                "search": "subject:smart"
+            },
+            "metadata": {
+                "designer": {
+                    "x": -1379,
+                    "y": -546
+                },
+                "restore": {
+                    "expect": {
+                        "folder": {
+                            "mode": "chose",
+                            "path": [
+                                "Boîte de réception"
+                            ]
+                        },
+                        "orderby": {
+                            "mode": "chose",
+                            "label": "Empty"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "azure"
+                            },
+                            "label": "My Microsoft connection (CARSTENS Thomas)"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:azure",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "folder",
+                        "type": "folder",
+                        "label": "Mail Folder"
+                    },
+                    {
+                        "name": "search",
+                        "type": "text",
+                        "label": "Search"
+                    },
+                    {
+                        "name": "orderby",
+                        "type": "select",
+                        "label": "Order by",
+                        "validate": {
+                            "enum": [
+                                "subject asc",
+                                "subject desc",
+                                "createdDateTime asc",
+                                "createdDateTime desc",
+                                "lastModifiedDateTime asc",
+                                "lastModifiedDateTime desc",
+                                "receivedDateTime asc",
+                                "receivedDateTime desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "type": "uinteger",
+                        "label": "Limit"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 54,
+            "module": "microsoft-email:listAttachments",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 329967
+            },
+            "filter": {
+                "name": "WIthin last 15 minutes.",
+                "conditions": [
+                    [
+                        {
+                            "a": "{{65.receivedDateTime}}",
+                            "o": "number:greaterorequal",
+                            "b": "{{addMinutes(now; -26)}}"
+                        }
+                    ]
+                ]
+            },
+            "mapper": {
+                "limit": "1",
+                "message": "{{65.id}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": -1074,
+                    "y": -409
+                },
+                "restore": {
+                    "expect": {
+                        "message": {
+                            "mode": "edit"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "azure"
+                            },
+                            "label": "My Microsoft connection (CARSTENS Thomas)"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:azure",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "message",
+                        "type": "select",
+                        "label": "Message ID",
+                        "required": true
+                    },
+                    {
+                        "name": "limit",
+                        "type": "uinteger",
+                        "label": "Limit"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 1,
+            "module": "microsoft-email:downloadAnAttachment",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 329974
+            },
+            "mapper": {
+                "message": "{{65.id}}",
+                "attachment": "{{54.id}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": -1056,
+                    "y": -14
+                },
+                "restore": {
+                    "expect": {
+                        "message": {
+                            "mode": "edit"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "azure"
+                            },
+                            "label": "My Microsoft connection (CARSTENS Thomas)"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:azure",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "mode": "edit",
+                        "name": "message",
+                        "type": "select",
+                        "label": "Message ID",
+                        "required": true
+                    },
+                    {
+                        "name": "attachment",
+                        "type": "any",
+                        "label": "Attachment ID",
+                        "required": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 52,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "mapper": null,
+            "metadata": {
+                "designer": {
+                    "x": -806,
+                    "y": -295
+                }
+            },
+            "routes": [
+                {
+                    "flow": [
+                        {
+                            "id": 48,
+                            "module": "google-drive:createAFolder",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": 330267
+                            },
+                            "mapper": {
+                                "name": "{{65.subject}}",
+                                "folderId": "/18c4pCVl1unNogbrfKHIWeMvHr5QRptYp",
+                                "destination": "team",
+                                "sharedDrive": "0AHU7xE7oDlEuUk9PVA",
+                                "useDomainAdminAccess": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": -464,
+                                    "y": -292,
+                                    "name": "Make New Drive"
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "folderId": {
+                                            "mode": "chose",
+                                            "path": [
+                                                "RECEIPT AUTOMATION"
+                                            ]
+                                        },
+                                        "destination": {
+                                            "label": "Google Shared Drive"
+                                        },
+                                        "sharedDrive": {
+                                            "mode": "chose",
+                                            "label": "ENTREPRENEUR"
+                                        },
+                                        "useDomainAdminAccess": {
+                                            "label": "No"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google-restricted"
+                                            },
+                                            "label": "My Google Restricted connection (thomaxarstens@gmail.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google-restricted",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "destination",
+                                        "type": "select",
+                                        "label": "New Drive Location",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "drive",
+                                                "share",
+                                                "team"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "useDomainAdminAccess",
+                                        "type": "select",
+                                        "label": "Use Domain Admin Access",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                true,
+                                                false
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "name",
+                                        "type": "text",
+                                        "label": "New Folder's Name"
+                                    },
+                                    {
+                                        "name": "sharedDrive",
+                                        "type": "select",
+                                        "label": "Shared Drive",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "folderId",
+                                        "type": "folder",
+                                        "label": "New Folder Location"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 2,
+                            "module": "archive:UnpackAction",
+                            "version": 1,
+                            "parameters": {},
+                            "mapper": {
+                                "data": "{{1.data}}"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": -213,
+                                    "y": -582
+                                },
+                                "restore": {},
+                                "expect": [
+                                    {
+                                        "name": "data",
+                                        "type": "buffer",
+                                        "label": "Data",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 4,
+                            "module": "google-drive:uploadAFile",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": 330267
+                            },
+                            "mapper": {
+                                "data": "{{2.data}}",
+                                "select": "map",
+                                "convert": false,
+                                "filename": "{{2.name}}",
+                                "folderId": "{{48.id}}"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 361,
+                                    "y": -573
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "select": {
+                                            "label": "Enter manually"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google-restricted"
+                                            },
+                                            "label": "My Google Restricted connection (thomaxarstens@gmail.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google-restricted",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "select",
+                                        "type": "select",
+                                        "label": "Enter a Folder ID",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "map",
+                                                "value"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "title",
+                                        "type": "text",
+                                        "label": "New File Name"
+                                    },
+                                    {
+                                        "name": "filename",
+                                        "type": "filename",
+                                        "label": "File Name",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "data",
+                                        "type": "buffer",
+                                        "label": "Data",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "convert",
+                                        "type": "boolean",
+                                        "label": "Convert a File",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "folderId",
+                                        "type": "text",
+                                        "label": "Folder ID",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 40,
+                            "module": "google-sheets:updateCell",
+                            "version": 2,
+                            "parameters": {
+                                "__IMTCONN__": 330960
+                            },
+                            "mapper": {
+                                "cell": "A2",
+                                "from": "team",
+                                "value": "{{48.id}}",
+                                "select": "list",
+                                "sheetId": "LABELS",
+                                "sharedDrive": "0AHU7xE7oDlEuUk9PVA",
+                                "spreadsheetId": "/18c4pCVl1unNogbrfKHIWeMvHr5QRptYp/1YAVW3-MFRIS3VtbBMBNnlMGs2SArrOzBuxwoK65p3Ng",
+                                "valueInputOption": "USER_ENTERED",
+                                "useDomainAdminAccess": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 638,
+                                    "y": -303,
+                                    "name": "Save New File ID"
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "from": {
+                                            "label": "Google Shared Drive"
+                                        },
+                                        "select": {
+                                            "label": "Select from the list"
+                                        },
+                                        "sheetId": {
+                                            "label": "LABELS"
+                                        },
+                                        "sharedDrive": {
+                                            "label": "ENTREPRENEUR"
+                                        },
+                                        "spreadsheetId": {
+                                            "path": [
+                                                "RECEIPT AUTOMATION",
+                                                "Statement2BudgetAnd2Receipt."
+                                            ]
+                                        },
+                                        "valueInputOption": {
+                                            "mode": "chose",
+                                            "label": "User entered"
+                                        },
+                                        "useDomainAdminAccess": {
+                                            "label": "No"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "My Google connection (thomaxarstens@gmail.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "select",
+                                        "type": "select",
+                                        "label": "Enter a Spreadsheet and Sheet ID",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "map",
+                                                "list"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "cell",
+                                        "type": "text",
+                                        "label": "Cell",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "value",
+                                        "type": "text",
+                                        "label": "Value"
+                                    },
+                                    {
+                                        "name": "valueInputOption",
+                                        "type": "select",
+                                        "label": "Value input option",
+                                        "validate": {
+                                            "enum": [
+                                                "USER_ENTERED",
+                                                "RAW"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "from",
+                                        "type": "select",
+                                        "label": "Choose a Drive",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "drive",
+                                                "share",
+                                                "team"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "useDomainAdminAccess",
+                                        "type": "select",
+                                        "label": "Use Domain Admin Access",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                true,
+                                                false
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "sharedDrive",
+                                        "type": "select",
+                                        "label": "Shared Drive",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "spreadsheetId",
+                                        "type": "file",
+                                        "label": "Spreadsheet ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "sheetId",
+                                        "type": "select",
+                                        "label": "Sheet Name",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "flow": [
+                        {
+                            "id": 53,
+                            "module": "google-sheets:getCell",
+                            "version": 2,
+                            "parameters": {
+                                "__IMTCONN__": 330960
+                            },
+                            "mapper": {
+                                "cell": "A1",
+                                "from": "team",
+                                "select": "list",
+                                "sheetId": "LABELS",
+                                "sharedDrive": "0AHU7xE7oDlEuUk9PVA",
+                                "spreadsheetId": "/18c4pCVl1unNogbrfKHIWeMvHr5QRptYp/1YAVW3-MFRIS3VtbBMBNnlMGs2SArrOzBuxwoK65p3Ng",
+                                "valueRenderOption": "FORMATTED_VALUE",
+                                "dateTimeRenderOption": "FORMATTED_STRING",
+                                "useDomainAdminAccess": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": -427,
+                                    "y": 60,
+                                    "name": "Get Old Drive"
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "from": {
+                                            "label": "Google Shared Drive"
+                                        },
+                                        "select": {
+                                            "label": "Select from the list"
+                                        },
+                                        "sheetId": {
+                                            "label": "LABELS"
+                                        },
+                                        "sharedDrive": {
+                                            "label": "ENTREPRENEUR"
+                                        },
+                                        "spreadsheetId": {
+                                            "path": [
+                                                "RECEIPT AUTOMATION",
+                                                "Statement2BudgetAnd2Receipt."
+                                            ]
+                                        },
+                                        "valueRenderOption": {
+                                            "mode": "chose",
+                                            "label": "Formatted value"
+                                        },
+                                        "dateTimeRenderOption": {
+                                            "mode": "chose",
+                                            "label": "Formatted string"
+                                        },
+                                        "useDomainAdminAccess": {
+                                            "label": "No"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "My Google connection (thomaxarstens@gmail.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "select",
+                                        "type": "select",
+                                        "label": "Enter a Spreadsheet and Sheet ID",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "map",
+                                                "list"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "cell",
+                                        "type": "text",
+                                        "label": "Cell",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "valueRenderOption",
+                                        "type": "select",
+                                        "label": "Value render option",
+                                        "validate": {
+                                            "enum": [
+                                                "FORMATTED_VALUE",
+                                                "UNFORMATTED_VALUE",
+                                                "FORMULA"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "dateTimeRenderOption",
+                                        "type": "select",
+                                        "label": "Date and time render option",
+                                        "validate": {
+                                            "enum": [
+                                                "SERIAL_NUMBER",
+                                                "FORMATTED_STRING"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "from",
+                                        "type": "select",
+                                        "label": "Choose a Drive",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "drive",
+                                                "share",
+                                                "team"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "useDomainAdminAccess",
+                                        "type": "select",
+                                        "label": "Use Domain Admin Access",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                true,
+                                                false
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "sharedDrive",
+                                        "type": "select",
+                                        "label": "Shared Drive",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "spreadsheetId",
+                                        "type": "file",
+                                        "label": "Spreadsheet ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "sheetId",
+                                        "type": "select",
+                                        "label": "Sheet Name",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 51,
+                            "module": "google-drive:deleteAFile",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": 330267
+                            },
+                            "mapper": {
+                                "select": "map",
+                                "select1": "folder",
+                                "folderId": "{{53.value}}"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 114,
+                                    "y": 52,
+                                    "name": "Delete Old Drive"
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "select": {
+                                            "label": "Enter manually"
+                                        },
+                                        "select1": {
+                                            "label": "Folder"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google-restricted"
+                                            },
+                                            "label": "My Google Restricted connection (thomaxarstens@gmail.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google-restricted",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "select",
+                                        "type": "select",
+                                        "label": "Enter a File/Folder ID",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "map",
+                                                "value"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "select1",
+                                        "type": "select",
+                                        "label": "Select File/Folder",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "file",
+                                                "folder"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "folderId",
+                                        "type": "text",
+                                        "label": "Folder ID",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 61,
+                            "module": "google-sheets:getCell",
+                            "version": 2,
+                            "parameters": {
+                                "__IMTCONN__": 330960
+                            },
+                            "mapper": {
+                                "cell": "A2",
+                                "from": "team",
+                                "select": "list",
+                                "sheetId": "LABELS",
+                                "sharedDrive": "0AHU7xE7oDlEuUk9PVA",
+                                "spreadsheetId": "/18c4pCVl1unNogbrfKHIWeMvHr5QRptYp/1YAVW3-MFRIS3VtbBMBNnlMGs2SArrOzBuxwoK65p3Ng",
+                                "valueRenderOption": "FORMATTED_VALUE",
+                                "dateTimeRenderOption": "FORMATTED_STRING",
+                                "useDomainAdminAccess": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 377,
+                                    "y": -129,
+                                    "name": "Get New File ID"
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "from": {
+                                            "label": "Google Shared Drive"
+                                        },
+                                        "select": {
+                                            "label": "Select from the list"
+                                        },
+                                        "sheetId": {
+                                            "label": "LABELS"
+                                        },
+                                        "sharedDrive": {
+                                            "label": "ENTREPRENEUR"
+                                        },
+                                        "spreadsheetId": {
+                                            "path": [
+                                                "RECEIPT AUTOMATION",
+                                                "Statement2BudgetAnd2Receipt."
+                                            ]
+                                        },
+                                        "valueRenderOption": {
+                                            "mode": "chose",
+                                            "label": "Formatted value"
+                                        },
+                                        "dateTimeRenderOption": {
+                                            "mode": "chose",
+                                            "label": "Formatted string"
+                                        },
+                                        "useDomainAdminAccess": {
+                                            "label": "No"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "My Google connection (thomaxarstens@gmail.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "select",
+                                        "type": "select",
+                                        "label": "Enter a Spreadsheet and Sheet ID",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "map",
+                                                "list"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "cell",
+                                        "type": "text",
+                                        "label": "Cell",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "valueRenderOption",
+                                        "type": "select",
+                                        "label": "Value render option",
+                                        "validate": {
+                                            "enum": [
+                                                "FORMATTED_VALUE",
+                                                "UNFORMATTED_VALUE",
+                                                "FORMULA"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "dateTimeRenderOption",
+                                        "type": "select",
+                                        "label": "Date and time render option",
+                                        "validate": {
+                                            "enum": [
+                                                "SERIAL_NUMBER",
+                                                "FORMATTED_STRING"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "from",
+                                        "type": "select",
+                                        "label": "Choose a Drive",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "drive",
+                                                "share",
+                                                "team"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "useDomainAdminAccess",
+                                        "type": "select",
+                                        "label": "Use Domain Admin Access",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                true,
+                                                false
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "sharedDrive",
+                                        "type": "select",
+                                        "label": "Shared Drive",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "spreadsheetId",
+                                        "type": "file",
+                                        "label": "Spreadsheet ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "sheetId",
+                                        "type": "select",
+                                        "label": "Sheet Name",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 62,
+                            "module": "google-sheets:updateCell",
+                            "version": 2,
+                            "parameters": {
+                                "__IMTCONN__": 330960
+                            },
+                            "mapper": {
+                                "cell": "A1",
+                                "from": "team",
+                                "value": "{{61.value}}",
+                                "select": "list",
+                                "sheetId": "LABELS",
+                                "sharedDrive": "0AHU7xE7oDlEuUk9PVA",
+                                "spreadsheetId": "/18c4pCVl1unNogbrfKHIWeMvHr5QRptYp/1YAVW3-MFRIS3VtbBMBNnlMGs2SArrOzBuxwoK65p3Ng",
+                                "valueInputOption": "USER_ENTERED",
+                                "useDomainAdminAccess": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 635,
+                                    "y": 56,
+                                    "name": "Store it as Old"
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "from": {
+                                            "label": "Google Shared Drive"
+                                        },
+                                        "select": {
+                                            "label": "Select from the list"
+                                        },
+                                        "sheetId": {
+                                            "label": "LABELS"
+                                        },
+                                        "sharedDrive": {
+                                            "label": "ENTREPRENEUR"
+                                        },
+                                        "spreadsheetId": {
+                                            "path": [
+                                                "RECEIPT AUTOMATION",
+                                                "Statement2BudgetAnd2Receipt."
+                                            ]
+                                        },
+                                        "valueInputOption": {
+                                            "mode": "chose",
+                                            "label": "User entered"
+                                        },
+                                        "useDomainAdminAccess": {
+                                            "label": "No"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "My Google connection (thomaxarstens@gmail.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "select",
+                                        "type": "select",
+                                        "label": "Enter a Spreadsheet and Sheet ID",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "map",
+                                                "list"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "cell",
+                                        "type": "text",
+                                        "label": "Cell",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "value",
+                                        "type": "text",
+                                        "label": "Value"
+                                    },
+                                    {
+                                        "name": "valueInputOption",
+                                        "type": "select",
+                                        "label": "Value input option",
+                                        "validate": {
+                                            "enum": [
+                                                "USER_ENTERED",
+                                                "RAW"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "from",
+                                        "type": "select",
+                                        "label": "Choose a Drive",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "drive",
+                                                "share",
+                                                "team"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "useDomainAdminAccess",
+                                        "type": "select",
+                                        "label": "Use Domain Admin Access",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                true,
+                                                false
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "sharedDrive",
+                                        "type": "select",
+                                        "label": "Shared Drive",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "spreadsheetId",
+                                        "type": "file",
+                                        "label": "Spreadsheet ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "sheetId",
+                                        "type": "select",
+                                        "label": "Sheet Name",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": true,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu1.make.com"
+    }
+}
