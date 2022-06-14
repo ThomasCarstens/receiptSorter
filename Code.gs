@@ -29,11 +29,20 @@ function main() {
   let spreadsheetId = convertExcelToGoogleSheets(fileName);
   let importedSheetName = importDataFromSpreadsheet(spreadsheetId, sheetName);
   toast(`Successfully imported data from ${sheetName} in ${fileName} to ${importedSheetName}`);
-  listFilesInFolder("1edxQoIQsOpoHqrEDpDlV4l1OOdfG8j96", importedSheetName);
 
 }
 
-
+function testListLinks() {
+  //Tom for example:
+  // var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("LABELS");
+  // cell = sheet.getRange(11,2,1,1).getValue()
+  // listFilesInFolder(cell, "Paris_with_ids");
+  //find way to combine CSVs afterwards...
+  ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Recus Tom.');
+  column = getColumnByName(ss, 'Drive Link')
+  column.shift()
+  console.log(column)
+}
 
 
 function toast(message) {
@@ -85,96 +94,162 @@ function listFilesInFolder(receiptFolder_id, newSheetName) {
   //Automatic Link updater. Every time you Add A New Receipts Folder:
   // (1) Add folder id Here --- manual for now.
   // (2) Make sure Excel Sheet is replaced --- manual for now.
-  // (3) 
+
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(newSheetName);
   cell = sheet.getRange(1,10,1,1)
   cell.setValues([["Drive Link"]]);
 
   var folder = DriveApp.getFolderById(receiptFolder_id);
   var contents = folder.getFiles();
-
+  
+  // orderInputPicsToReceipts()
+  ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(newSheetName);
+  var raw_ids = getColumnByName(ss, 'Receipt ID')
+  // console.log('RAW IDS', raw_ids)
   var cnt = 0;
   var file;
-
+  var picture_index = new Array()
   while (contents.hasNext()) {
       var file = contents.next();
-      cnt++;
-      cell = sheet.getRange(1+cnt,10,1,1)
-
+      // console.log('index is', file.getName().split('_')[0])
+      picture_index.push(raw_ids.flat().indexOf(parseInt(file.getName().split('_')[0])))
+      // console.log(picture_index)
       data = [
           "https://drive.google.com/file/d/"+file.getId()+"/view?usp=drivesdk"
       ];
-      console.log(data)
+      cnt++ 
+      row = picture_index.pop();
+      if (row != -1) {
+        cell = sheet.getRange(1+row,10,1,1)      
+        cell.setValues([data]);
+      }
       
-      cell.setValues([data]);
   };
+  return getColumnByName(ss, 'Drive Link').shift()
 };
 
-function setValueatLocation(val, row, col) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Sheet2');
-  var range = sheet.getRange(row,col);
-  range.setValue(val);
-  
+function getColumnByName(ss, colName) {
+  var data = ss.getDataRange().getValues();
+  var col = data[0].indexOf(colName);
+  if (col != -1) {
+    var column = 'ABCDEFGHIJKLM'[col]
+  }
+  var raw_ids = ss.getRange(column+"1:"+column).getValues().filter(function(el) { return el[0]; });
+
+  return raw_ids
 }
 
+// function orderInputPicsToReceipts() {
+  
+//   ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Paris_with_ids');
+//   var raw_ids = getColumnByName(ss, 'Receipt ID')
+//   console.log(raw_ids)
+//   ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Paris_with_ids');
+//   // find how we did pictures.
+// }
+
+
+////////////////////////////////////////////
 
 function linkerA() {
   
-  ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Copy of EasyAccountMar2May');
-  var bank_description_raw = ss.getRange("D8:D").getValues()
-  // var bank_description = bank_description_raw.map((x )=> {if (x[0]!=''){return x[0];}});
-  var bank_description =bank_description_raw.filter(function(el) { return el[0]; });
-  // console.log(bank_description)
-  var bank_dates = ss.getRange("A8:A").getValues().filter(function(el) { return el[0]; });
+  // FNB
+  // ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Copy of EasyAccountMar2May');
+  // var bank_description_raw = ss.getRange("D8:D").getValues()
+  // // var bank_description = bank_description_raw.map((x )=> {if (x[0]!=''){return x[0];}});
+  // var bank_description =bank_description_raw.filter(function(el) { return el[0]; });
+  // // console.log(bank_description)
+  // var bank_dates = ss.getRange("A8:A").getValues().filter(function(el) { return el[0]; });
+  // var bank_stamp = bank_dates.map((x) => {return new Date(x[0]).getTime();});
+
+  // Rhone-Alpes
+  ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Copy of Feb2022');
+  var bank_description_raw = ss.getRange("B14:B").getValues()
+  console.log('RAW description:', bank_description_raw.flat())
+  var bank_dates_raw = ss.getRange("A14:A").getValues()
+  // console.log(bank_dates_raw)
+  var bank_description = bank_description_raw.filter(function(el) { if(el[0].includes('CARTE')){return el[0];} })
+  console.log('Bank description:', bank_description.flat())
+  var bank_dates = new Array();
+  for (i=0; i<bank_description.length ; i++){
+    relevant_index = bank_description_raw.flat().indexOf(bank_description.flat()[i])
+    bank_dates.push(bank_dates_raw[relevant_index])
+  }
+  console.log(bank_dates)
+  
   var bank_stamp = bank_dates.map((x) => {return new Date(x[0]).getTime();});
 
-
-  ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Sheet2');
-  var linkcolumn = ss.getRange(8,7,bank_dates.length,1)
-  var hyperlinkcolumn = ss.getRange(8,8,bank_dates.length,1)
+  // ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Copy of EasyAccountMar2May');
+  // var linkcolumn = ss.getRange(1,10,bank_dates.length,1)
+  // var hyperlinkcolumn = ss.getRange(1,11,bank_dates.length,1)
   // console.log(bank_stamp)
+  ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Copy of Feb2022');
+  var linkcolumn = ss.getRange(1,10,bank_dates.length,1)
+  var hyperlinkcolumn = ss.getRange(1,11,bank_dates.length,1)
+
+  ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Recus Tom.');
 
 
-  ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Copy of RECEIPTS PARIS 2022');
-  var receipt_description = ss.getRange("C2:D").getValues()
-  var receipt_cost = receipt_description.map(x => x[0]);
+  var receipt_cost = getColumnByName(ss, 'Price')
+  receipt_cost.shift()
   // console.log(receipt_cost)
-  var receipt_dates = ss.getRange("A2:A").getValues().filter(function(el) { return el[0]; });
+  var receipt_dates = getColumnByName(ss, 'Date')
+  receipt_dates.shift()
   var receipt_stamp = receipt_dates.map((x) => {return new Date(x[0]).getTime();});
   // console.log(receipt_stamp)
-  
   var linktext = new Array(bank_stamp.length).fill(['0'])
-  var linkpic = new Array(bank_description.length).fill(['No receipt'])
-  var receipt_links = ss.getRange("L2:L").getValues().filter(function(el) { return el[0]; });
+  var linkpic = new Array(bank_description.length).fill(['No receipt detected.'])
 
-  var anon_duplicate = receiptCleaner(receipt_cost);
+  // !!! 
+  //Link Receipt Folder. Tom for example:
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("LABELS");
+  var cell = sheet.getRange(11,2,1,1).getValue()
+  console.log('cell is', cell)
 
-  for (let i = 0; i < receipt_stamp.length; i++) {
-    for (let j = 0; j < bank_stamp.length; j++) {    
-      // console.log(receipt_stamp[i])
+
+  // var receipt_links = listFilesInFolder(cell, 'Recus Tom.'); //issue with Promise.
+  var receipt_links = getColumnByName(ss, 'Drive Link')
+  receipt_links.shift()
+  //find way to combine CSVs afterwards...
+  console.log('end of receipt linking on CSV file.')
+  
+
+  var index_duplicate = receiptCleaner(receipt_cost, receipt_links);
+  // TO ADD: Return above is modified receipt list.
+
+  for (let i = 0; i < receipt_cost.length; i++) {
+    for (let j = 0; j < bank_description.length; j++) {    
+        console.log(bank_description[j], '|', receipt_cost[i])
+        // if (bank_description[j][0].includes(receipt_cost[i])){ //FNB
         if (bank_description[j][0].includes(receipt_cost[i])){
+
           console.log('found matching costs...')
           console.log(bank_description[j], '|', receipt_cost[i])
+
+          // Display receipt pictures to the user.
+          validation = ConfirmStatement(receipt_links[i], bank_description[j][0])
+          // Yes/No executes separately.
+
           linkpic[j] = [receipt_links[i]] // Currently at same time, but can be put in linker C.
-
-
-          linktext[j]=['1']
+          // linktext[j]=['1']
       } 
     }
   }
 
+  return
+
   console.log('end of search.')
   // console.log(linktext)
-  linkcolumn.setValues(linktext)
-  console.log('end of labelling.')
+  // linkcolumn.setValues(linktext)
+  // console.log('end of labelling.')
   linkerB(linktext,bank_description)
   console.log('end of estimating.')
   // linkerC()
   hyperlinkcolumn.setValues(linkpic)
-  console.log('end of receipt linking.')
+  console.log('end of receipt linking on Bank Statement.')
 }
 
-// PicLinking.
+// PicLinking * Incomplete function!
 function linkerC(linktext, bank_description) {
   ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Copy of RECEIPTS PARIS 2022');
   var receipt_links = ss.getRange("L8:L").getValues().filter(function(el) { return el[0]; });
@@ -182,20 +257,17 @@ function linkerC(linktext, bank_description) {
   var linkpic = new Array(bank_description.length).fill(['No receipt'])
   for (let i = 0; i < linktext.length; i++) {  
       if (linktext[i] == '1'){
-
         linkpic[i] = receipt_links[i]
       } 
     }
   ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Copy of RECEIPTS PARIS 2022');
 }
 
-
+// Estimating share of non-tabulated costs.
 function linkerB(linktext, bank_description) {
   // assume linktext exists already.
   unknowns_total = 0
   knowns_total = 0
-
-  // console.log(bank_description)
   var text_to_nb = 0
 
   for (let i = 0; i < linktext.length; i++) {  
@@ -222,8 +294,22 @@ function linkerB(linktext, bank_description) {
 
   // (iii) one case for 500 euros bank transfer to be linked to business costs.
 
-function receiptCleaner(receipt_cost) {
+function multimatch(str, value) {
+  var matches = new Array()
+  i = str.indexOf(value);
+  while(i >= 0) {
+      matches.push(i)
+      i = str.indexOf(value, i+1);
+  }
+  return matches
+}
+
+
+function receiptCleaner(receipt_cost, receipt_links) {
+  
+  var ui = SpreadsheetApp.getUi(); 
   const set = new Set(receipt_cost);
+  // Create a set with duplicate values.
   const duplicates = receipt_cost.filter(item => {
       if (set.has(item)) {
           set.delete(item);
@@ -231,21 +317,16 @@ function receiptCleaner(receipt_cost) {
         return item;        
       }
   });
-
-  console.log(duplicates)
-  var ui = SpreadsheetApp.getUi(); // Same variations.
-
-
+  
   for (let i = 0; i < duplicates.length; i++) {  
-    // runTwo()
-    validation = ValidationAlert('We found duplicates.', 'should we combine these entries?')
-    if (validation){
-      ui.alert('Index is '+ String(receipt_cost.indexOf(duplicates[i])));
-    }
+    // Use duplicates to find indexes of a multimatch
+    receipt_matches = multimatch(receipt_cost, duplicates[i])
+    console.log('MATCHES:', receipt_matches)
+    // Display receipt pictures to the user.
+    validation = ValidationAlert(receipt_links[receipt_matches[0]], receipt_links[receipt_matches[1]])
+    // Yes/No executes separately.
   }
-
   return duplicates;
-
 }
 
 function userValidate(){
@@ -254,51 +335,54 @@ function userValidate(){
   return 1
 }
 function userReject(){
-  // var output = HtmlService.createHtmlOutput('<script>google.script.host.close();</script>');
-  // SpreadsheetApp.getUi().showModalDialog(output, 'Loading...');
   toast ('Left as is.')  
   // Do something.
   return 0
 }
 
-function runTwo(){
+function ConfirmStatement(receipt1, description){
+  //Get ids from google links
+  a = String(receipt1).slice(32,65)
   var ui = SpreadsheetApp.getUi();
-  html='<input type="button" value="ok" onClick="google.script.run.withSuccessHandler(function(){google.script.host.close();}).clickOk()" />';
-  html+='<input type="button" value="cancel" onClick="google.script.run.withSuccessHandler(function(){google.script.host.close();}).clickCancel()"/>';
-  ui.showModalDialog(HtmlService.createHtmlOutput(html), 'sample');
-}
-
-function clickCancel() {
-  SpreadsheetApp.getUi().alert('Clicked cancel');
-}
-
-function clickOk() {
- SpreadsheetApp.getUi().alert('Click Ok')
-}
-
-function ValidationAlert(title, question) {
-  var ui = SpreadsheetApp.getUi();
-  var output = HtmlService.createHtmlOutput('<script>google.script.host.close();</script>');
-  var response = 2
   var html = `
-    
     <p class="body" style="font-family: sans-serif; color:gray; text-align:center">
-    We found duplicates. Should we combine these entries?</p>
-    <center><img src="https://drive.google.com/uc?export=view&id=1-Efr-CNn6TysNOdIGptyPbF_jSmLmGjC" width=300 />
-    <img src="https://drive.google.com/uc?export=view&id=190LU9e-JjolvFuev3unfOuUBJMw8OKpA" width=300 /></center>
+    We found a bank record. Does it correspond to this receipt?</p>
+    <center><img src="https://drive.google.com/uc?export=view&id=${a}" width=300 />
+    <p> ${description} </p> </center>
     <body>
     <center><input type="button" value="YES" onClick="google.script.run.withSuccessHandler(function(){google.script.host.close();}).userValidate()"/>
-    <input type="button" id="no" value="NO" onClick="var response=0;google.script.host.close();console.log(response)"/></center>
+    <input type="button" id="no" value="NO" onClick="google.script.run.withSuccessHandler(function(){google.script.host.close();}).userReject()"/></center>
     </body>
     ` 
-
   var htmlOutput = HtmlService
       .createHtmlOutput(html)
       .setWidth(700)
       .setHeight(600);
 
-  SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Duplicates');
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Possible receipt-bank association.');
 
 }
 
+function ValidationAlert(receipt1, receipt2, receipt_matches) {
+  //Get ids from google links
+  a = String(receipt1).slice(32,65)
+  b = String(receipt2).slice(32,65)
+  var ui = SpreadsheetApp.getUi();
+  var html = `
+    <p class="body" style="font-family: sans-serif; color:gray; text-align:center">
+    We found duplicates. Should we combine these entries?</p>
+    <center><img src="https://drive.google.com/uc?export=view&id=${a}" width=300 />
+    <img src="https://drive.google.com/uc?export=view&id=${b}" width=300 /></center>
+    <body>
+    <center><input type="button" value="YES" onClick="google.script.run.withSuccessHandler(function(){google.script.host.close();}).userValidate()"/>
+    <input type="button" id="no" value="NO" onClick="google.script.run.withSuccessHandler(function(){google.script.host.close();}).userReject()"/></center>
+    </body>
+    ` 
+  var htmlOutput = HtmlService
+      .createHtmlOutput(html)
+      .setWidth(700)
+      .setHeight(600);
 
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Possible duplicates.');
+
+}
