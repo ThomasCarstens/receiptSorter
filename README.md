@@ -1,12 +1,11 @@
 # receiptSorter
-We classify and justify our company expenses. It currently takes 3h to gather each month's receipts with an additional 3-6h to link to bank statements.
-I'm working on a solution that takes no more than 6h because multiple users can input receipts in any order and Bank Linking is semi-automated.
+We classify and justify our company expenses. It currently takes 9h to gather each month's receipts (3h) and find their corresponding entry in bank statements (3h) and then group cash receipts (2h).
+I'm working on an automation solution that takes no more than 6h. 
+- ultiple users can input receipts in any order, 
+- only at the end do we open the spreadsheet for errors. 
+- Each month is overwritten in COMPTES_2021-2022.xlsx
 
--> The **Smart Receipts App** takes receipts and outputs a ZIP (photos) and a CSV file (custom categories).
--> Send these to [email] and a spreadsheet will organise them among existing receipts.
--> The **Bank Linking Sheet** goes through all possible matches and outputs COMPTES_2021-2022.xlsx
-
-## Exploration Phase.
+# Exploration Phase.
 ### 1 June '22
 Creating a Menu for the End-User. One menu item asks to import Bank Statements as New Sheets.
 
@@ -14,23 +13,30 @@ Creating a Menu for the End-User. One menu item asks to import Bank Statements a
 One menu item searches for bank entries with the same cost as the receipts. 
 
 ### 8 June '22
-In case the same receipt is scanned twice, a script detects it and signals to user. 
+The **Bank Linking Sheet** goes through all possible matches and outputs COMPTES_2021-2022.xlsx In case the same receipt is scanned twice, a script detects it and signals to user. 
 
 ### 13 June '22
-SmartReceipt's output CSV does not join a receipt image so I set up a pipeline with Make.com that pushes all photos to Drive. You email the ZIP to a specific address to trigger the pipeline. I was able to get rid of the one-person-at-a-time bottleneck by extending the pipeline to multiple users.
+The **Smart Receipts App** takes receipts and outputs a ZIP (photos) and a CSV file (custom categories). 
+SmartReceipt's output CSV does not join a receipt image so I set up a pipeline with Make.com that pushes all photos to Drive. 
+You email the ZIP to our email address to trigger the pipeline. 
+I extended the pipeline to multiple users. I reckon this solves the conundrum of having to open the doc for every receipt.
 
 ### 15 June '22
-The search scripts are made to ask permission before a match is joined.
+The **Bank Linking Sheet** goes through all possible matches and outputs COMPTES_2021-2022.xlsx However, the search scripts are made to ask permission before a match is joined.
 
 ### 20 June '22
-CSVs of all three users are merged and organised by date right before Bank Linking. Duplicata trigger if new receipts are added. The search scripts focus on one month, to populate OUTPUT sheet. A progress bar is added to the search scripts. 
+The **Smart Receipts App** creates a ZIP file of receipts. Send it to our email address and a spreadsheet will organise them among existing receipts. CSVs of all three users are merged and organised by date right before Bank Linking. If new receipts are found, the duplicata script does a check. 
 
 ### 21 June '22
-Bank Statements are tagged by user during Import, and extra email trigger is added. Finally, OUTPUT is linked to COMPTES_2021-2022.xlsx in a way that can be manually superceded. 
+The Banklinker script populates a single month. A progress bar and an issue box are added to the user interface. Bank Statements are tagged by user during Import, and extra email trigger is added. 
 
-## User Testing.
-...
-<!-- 
+### 22 June '22
+OUTPUT sheet is linked to COMPTES_2021-2022.xlsx in a way that can be manually superceded. 
+
+
+# User Testing.
+4 Users are registered and their Smart Receipts App is customised. All they need for Phase I is to use the same category standards.
+<!--
 <blockquote class="trello-board-compact">
     <a href="{https://trello.com/b/aMz841An/receipts-sorter}">Changelog</a>
     </blockquote>
