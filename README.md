@@ -5,7 +5,7 @@ I'm working on an automation solution that takes no more than 6h.
 - only at the end do we open the spreadsheet for errors. 
 - Each month is overwritten in COMPTES_2021-2022.xlsx
 
-# Exploration Phase.
+# Changelog.
 ### 1 June '22
 Creating a Menu for the End-User. One menu item asks to import Bank Statements as New Sheets.
 
@@ -25,13 +25,13 @@ I extended the pipeline to multiple users. I reckon this solves the conundrum of
 The **Bank Linking Sheet** goes through all possible matches and outputs COMPTES_2021-2022.xlsx However, the search scripts are made to ask permission before a match is joined.
 
 ### 20 June '22
-The **Smart Receipts App** creates a ZIP file of receipts. Send it to our email address and a spreadsheet will organise them among existing receipts. CSVs of all three users are merged and organised by date right before Bank Linking. If new receipts are found, the duplicata script does a check. 
+The **Smart Receipts App** creates a ZIP file of receipts. Send it to our email address and a spreadsheet will organise them among existing receipts. CSVs of all three users are merged and organised by date right before Bank Linking. If new receipts are found, the duplicata script does a check.  
 
-### 21 June '22
-The Banklinker script populates a single month. A progress bar and an issue box are added to the user interface. Bank Statements are tagged by user during Import, and extra email trigger is added. 
+### 21 July '22
+For now, Master Accounts is linked as a Google Sheet. main.testListLinks creates a centralised month, puts photo hyperlink and populates Master Accounts.
 
-### 22 June '22
-OUTPUT sheet is linked to COMPTES_2021-2022.xlsx in a way that can be manually superceded. 
+### 22 July '22
+LinkerFunction (triggered from Sheet UI) uses main's findBankEntry() and Ticks Validated Receipts / cross out in Bank Statement.
 
 
 # User Testing.
