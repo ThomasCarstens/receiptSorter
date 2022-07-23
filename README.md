@@ -35,7 +35,8 @@ LinkerFunction (triggered from Sheet UI) uses main's findBankEntry() and Ticks V
 
 
 # User Testing.
-4 Users are registered and their Smart Receipts App is customised. All they need for Phase I is to use the same category standards.
+4 Users are registered and their Smart Receipts App is customised.
+TODO: Issues 1 and 2.
 <!--
 <blockquote class="trello-board-compact">
     <a href="{https://trello.com/b/aMz841An/receipts-sorter}">Changelog</a>
